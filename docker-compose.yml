@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: messaging_mvp
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - messaging-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - messaging-network
+
+  message-orchestrator:
+    build:
+      context: .
+      dockerfile: apps/message-orchestrator/Dockerfile
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://admin:password123@postgres:5432/messaging_mvp
+      REDIS_URL: redis://redis:6379
+    networks:
+      - messaging-network
+
+  whatsapp-service:
+    build:
+      context: .
+      dockerfile: apps/whatsapp-service/Dockerfile
+    ports:
+      - "3002:3000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://admin:password123@postgres:5432/messaging_mvp
+      REDIS_URL: redis://redis:6379
+      GUPSHUP_API_URL: https://api.gupshup.io
+      META_GRAPH_API_URL: https://graph.facebook.com
+    networks:
+      - messaging-network
+
+  webhook-processor:
+    build:
+      context: .
+      dockerfile: apps/webhook-processor/Dockerfile
+    ports:
+      - "3003:3000"
+    depends_on:
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379
+    networks:
+      - messaging-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - message-orchestrator
+      - whatsapp-service
+      - webhook-processor
+    environment:
+      ORCHESTRATOR_URL: http://message-orchestrator:3000
+      WHATSAPP_SERVICE_URL: http://whatsapp-service:3000
+      WEBHOOK_PROCESSOR_URL: http://webhook-processor:3000
+    networks:
+      - messaging-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  messaging-network:
+    driver: bridge
