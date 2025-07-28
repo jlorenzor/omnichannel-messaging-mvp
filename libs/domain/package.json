@@ -1,0 +1,17 @@
+{
+  "name": "@omnichannel/domain",
+  "version": "1.0.0",
+  "description": "Core domain models for omnichannel messaging",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^18.0.0"
+  }
+}
