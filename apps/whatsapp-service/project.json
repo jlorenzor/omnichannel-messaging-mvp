@@ -1,0 +1,60 @@
+{
+  "name": "whatsapp-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/whatsapp-service/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/node:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/whatsapp-service",
+        "main": "apps/whatsapp-service/src/main.ts",
+        "tsConfig": "apps/whatsapp-service/tsconfig.app.json"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/whatsapp-service/src/environments/environment.ts",
+              "with": "apps/whatsapp-service/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/node:execute",
+      "options": {
+        "buildTarget": "whatsapp-service:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "whatsapp-service:build:development"
+        },
+        "production": {
+          "buildTarget": "whatsapp-service:build:production"
+        }
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/whatsapp-service/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/whatsapp-service/**/*.ts"]
+      }
+    }
+  },
+  "tags": ["scope:whatsapp", "type:service"]
+}
